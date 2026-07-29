@@ -1,0 +1,31 @@
+# Core scientific stack
+numpy>=1.24
+pandas>=2.0
+scipy>=1.10
+scikit-learn>=1.3
+
+# Geospatial (pipeline/)
+# NOTE: rasterio, geopandas and osgeo/GDAL have OS-level binary dependencies.
+# We recommend installing them via conda:
+#     conda install -c conda-forge rasterio geopandas gdal rasterstats shapely
+rasterio>=1.3
+geopandas>=0.14
+rasterstats>=0.19
+shapely>=2.0
+gdal>=3.6                 # via osgeo
+
+# Google Earth Engine (fetch_s2_roi.py)
+earthengine-api>=0.1.400
+
+# Model serialization
+joblib>=1.3
+
+# Data formats
+pyarrow>=14.0             # parquet for evaluation scripts
+
+# Model interpretability
+shap>=0.44
+
+# Plotting (SHAP + concept figures)
+matplotlib>=3.7
+Pillow>=10.0

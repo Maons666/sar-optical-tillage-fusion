@@ -1,0 +1,64 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# --------------------------------------------------------------------
+# DATA — do NOT commit.  This repository ships CODE ONLY.
+# --------------------------------------------------------------------
+
+# Tabular / model artefacts
+*.csv
+*.parquet
+*.npz
+*.npy
+*.pkl
+*.pickle
+*.joblib
+*.pt
+*.h5
+
+# Rasters
+*.tif
+*.tiff
+*.geotiff
+*.tif.aux.xml
+*.tif.ovr
+*.tif.vat.cpg
+*.tif.vat.dbf
+
+# Vector
+*.shp
+*.shx
+*.dbf
+*.prj
+*.gpkg
+*.geojson
+*.kml
+
+# Directory patterns implied by the pipeline scripts
+data/raw/
+data/ready/
+data/utils/
+models/
+out/
+GEE_exports/
+
+# SHAP / concept-figure outputs
+figs/shap/
+*.png
+!figures/README_*.png
+
+# OS
+Thumbs.db
