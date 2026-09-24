@@ -31,13 +31,13 @@ code_release/
 │   │                              align them to the S2 grid (§3.3)
 │   └── tillage_fusion.py         CORE fusion pipeline (§3.4 / §4.5):
 │                                  RF optical classification + S-1 InSAR
-│                                  coherence at 9-pixel window + entropy
-│                                  gate at 0.65 + γ threshold at 0.25 +
+│                                  coherence at 9-pixel window + optical
+│                                  confidence gate at p_max = 0.65 + γ threshold at 0.25 +
 │                                  CSB parcel aggregation via zonal stats
 │
 ├── evaluation/                   ← §4.1 + §4.7 evaluation
-│   ├── rebalance_evaluate.py     §4.1 six-metric performance panel
-│   │                              (OA, balanced-OA, BA, F1_minority, κ, MCC)
+│   ├── evaluate_holdout.py       §4.1 field-level hold-out evaluation
+│   │                              (OA + bootstrap CI, BA, P, R, F1, κ, MCC)
 │   ├── shap_analysis.py          §4.7 SHAP driver (from saved RF pickle)
 │   └── shap_from_csv.py          §4.7 SHAP driver (end-to-end from CSV)
 │
@@ -50,7 +50,7 @@ code_release/
     ├── fig_workflow.py           Figure 2 workflow diagram
     ├── fig_concept_A1_physics.py Figure 3 (measurement physics)
     ├── fig_concept_A2_properties.py Figure 4 (target physical property)
-    ├── fig_concept_A3_gate.py    Figure 5 (Shannon entropy gate)
+    ├── fig_concept_A3_gate.py    Figure 5 (confidence gate)
     ├── fig_concept_A4_output.py  auxiliary (fused output schematic)
     ├── fig_concept_B_scenario.py Figure 10 (sensor-mode across cloud regimes)
     ├── fig_concept_C_signals.py  Figure 11 (three-signal co-evolution)
@@ -139,10 +139,12 @@ python pipeline/tillage_fusion.py
 ```
 
 Runs, block-by-block:
-  1. Optical RF classification + Shannon-entropy confidence
+  1. Optical RF classification + per-pixel confidence p_max (Shannon entropy
+     is kept as the uncertainty map of Figure 7)
   2. InSAR coherence over a 9-pixel moving window
-  3. Entropy-gated multi-modal fusion using thresholds
-     H ≥ 0.65 (SAR override) and γ < 0.25 (soil-disturbance flag)
+  3. Confidence-gated multi-modal fusion: pixels with p_max < 0.65 are
+     referred to the SAR rules, γ < 0.25 flags soil disturbance and
+     γ > 0.60 flags a structurally stable surface
   4. CSB parcel aggregation via `rasterstats.zonal_stats`
 
 Outputs to `out/`:
@@ -153,19 +155,24 @@ Outputs to `out/`:
   * `CSB_NE_updated.gpkg`                      CSB polygons with
                                                `tillage_<dates>` attribute
 
-### §4.1 — six-metric performance panel
+### §4.1 — hold-out evaluation of the optical classifier
 
-Requires the original training CSV (not included).
+Requires the labelled training CSV (not included; available from the
+corresponding author on request, see the Data availability statement).
+The CSV must carry a column that identifies the field each pixel belongs to.
 
 ```bash
-python evaluation/rebalance_evaluate.py \
+python evaluation/evaluate_holdout.py \
     --csv path/to/training_pixels.csv \
-    --tilled-class 1
+    --field-col field_id --label-col tillage --tilled-class 1
 ```
 
-Reports natural-distribution OA, balanced-subset OA (with 1,000-resample
-95% bootstrap CI), balanced accuracy, F1 on the minority Tilled class,
-Cohen's κ, and MCC.
+The hold-out is drawn at the field level (whole fields on one side only), so
+pixels of the same field never occur in both partitions. The labelled sample is
+class-balanced at the sampling stage, so the 200-tree Random Forest is trained
+without class weights. Reports the confusion matrix, Overall Accuracy with a
+1,000-resample bootstrap 95% CI, Balanced Accuracy, Precision, Recall and F1 of
+the Tilled class, Cohen's κ and MCC (Tables 4 and 5 of the paper).
 
 ### §4.5 — Sentinel-2 vs (S-1 ∪ S-2) weekly cropland coverage
 
