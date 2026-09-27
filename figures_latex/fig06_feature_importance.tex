@@ -1,0 +1,37 @@
+% !LW recipe = build-figure
+% Figure 6 -- Gini feature importance of the optical Random Forest (PGFPlots). Final width 15.5 cm.
+% Values are those printed on the bars of the original figure (they sum to 1.000).
+\documentclass[tikz,border=3pt]{standalone}
+\input{figstyle}
+\definecolor{barindex}{RGB}{62,125,88}
+\definecolor{barband}{RGB}{138,173,208}
+\begin{document}
+\begin{tikzpicture}
+\begin{axis}[
+    width=15.5cm, height=8.2cm,
+    ybar, bar width=0.78cm, bar shift=0pt,
+    ymin=0, ymax=0.148,
+    symbolic x coords={NDTI,NDSI,B2,B3,B8,B11,BSI,NDBSI,NDVI,B12,B4},
+    xtick={NDTI,NDSI,B2,B3,B8,B11,BSI,NDBSI,NDVI,B12,B4},
+    enlarge x limits=0.055,
+    xlabel={Feature}, ylabel={Relative importance (Gini)},
+    ytick={0,0.02,0.04,0.06,0.08,0.10,0.12,0.14},
+    yticklabel style={/pgf/number format/fixed, /pgf/number format/fixed zerofill, /pgf/number format/precision=2},
+    scaled y ticks=false,
+    ymajorgrids, grid style={black!12},
+    axis x line*=bottom, axis y line*=left,
+    xtick style={draw=none},
+    nodes near coords={\pgfmathprintnumber[fixed, fixed zerofill, precision=4]{\pgfplotspointmeta}},
+    nodes near coords style={font=\footnotesize, text=black},
+    legend style={at={(0.985,0.97)}, anchor=north east, legend cell align=left},
+    legend image code/.code={\draw[#1, draw=black!70] (0cm,-0.11cm) rectangle (0.32cm,0.13cm);},
+]
+  \addplot[fill=barindex, draw=black!70] coordinates
+      {(NDTI,0.1288) (NDSI,0.1114) (BSI,0.0809) (NDBSI,0.0796) (NDVI,0.0775)};
+  \addlegendentry{Derived spectral index}
+  \addplot[fill=barband, draw=black!70] coordinates
+      {(B2,0.1095) (B3,0.1032) (B8,0.0912) (B11,0.0905) (B12,0.0752) (B4,0.0523)};
+  \addlegendentry{Sentinel-2 band}
+\end{axis}
+\end{tikzpicture}
+\end{document}

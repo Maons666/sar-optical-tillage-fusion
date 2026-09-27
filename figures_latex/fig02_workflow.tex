@@ -1,0 +1,111 @@
+% !LW recipe = build-figure
+% Figure 2 -- Overall processing architecture (TikZ flowchart). Final size about 15.6 x 18.2 cm.
+% Five modules, same content and wiring as the original draw.io chart. Three colour-coded buses
+% carry the optical confidence (blue), the optical prediction (green) and the SAR coherence
+% evidence (orange) into the three fusion rules.
+\documentclass[tikz,border=3pt]{standalone}
+\input{figstyle}
+\definecolor{inputfill}{RGB}{248,206,204} \definecolor{inputline}{RGB}{184,84,80}
+\definecolor{procfill}{RGB}{218,232,252}  \definecolor{procline}{RGB}{108,142,191}
+\definecolor{prodfill}{RGB}{213,232,212}  \definecolor{prodline}{RGB}{110,160,85}
+\definecolor{rulefill}{RGB}{255,242,204}  \definecolor{ruleline}{RGB}{205,170,70}
+\begin{document}
+\begin{tikzpicture}[
+    box/.style={rectangle, rounded corners=2pt, line width=0.7pt, align=center, font=\small,
+                inner sep=3pt, minimum height=1.0cm},
+    input/.style={box, fill=inputfill, draw=inputline},
+    proc/.style={box, fill=procfill, draw=procline},
+    prod/.style={box, fill=prodfill, draw=prodline},
+    rule/.style={box, fill=rulefill, draw=ruleline},
+    module/.style={rounded corners=5pt, draw=black!55, dashed, line width=0.6pt, fill=black!4},
+    mtitle/.style={font=\small\bfseries, anchor=west, text=black!85},
+    flow/.style={-{Stealth[length=5pt]}, line width=0.7pt, black!80},
+    dflow/.style={flow, dashed},
+    tag/.style={font=\footnotesize, fill=white, inner sep=1.5pt, text=black!80},
+    bus/.style={line width=0.9pt, -{Stealth[length=5pt]}},
+    junction/.style={circle, fill, inner sep=1.3pt},
+  ]
+
+  % ------------------------------------------------------------------ module frames
+  \draw[module] (0,14.6)    rectangle (15.5,18.05);
+  \draw[module] (1.15,9.85) rectangle (10.65,13.95);
+  \draw[module] (11.0,9.85) rectangle (15.5,13.95);
+  \draw[module] (1.15,4.85) rectangle (15.5,9.35);
+  \draw[module] (0,0)       rectangle (15.5,4.35);
+  \node[mtitle] at (0.2,17.77)   {1. Cloud-native data acquisition and harmonization};
+  \node[mtitle] at (1.35,13.68)  {2. Optical feature engineering and UQ};
+  \node[mtitle] at (11.2,13.68)  {3. SAR SLC processing};
+  \node[mtitle] at (1.35,5.13)   {4. Dynamic multi-modal probabilistic fusion};
+  \node[mtitle] at (0.2,0.3)     {5. Field-level aggregation via zonal statistics};
+
+  % ------------------------------------------------------------------ module 1
+  \draw[dashed, rounded corners=4pt, black!60, line width=0.6pt] (7.25,14.88) rectangle (15.3,17.5);
+  \node[input, text width=2.9cm] (csb) at (1.9,16.7)   {USDA CSB v2024\\boundaries};
+  \node[input, text width=2.9cm] (gt)  at (5.35,16.7)  {2024 ground-truth\\data};
+  \node[input, text width=3.4cm] (s2)  at (9.35,16.75) {Sentinel-2 L2A\\multispectral imagery};
+  \node[input, text width=3.2cm] (s1)  at (13.35,16.75){Sentinel-1 SLC\\C-band SAR};
+  \node[proc, text width=7.5cm, minimum height=0.85cm] (harm) at (11.3,15.45)
+       {Geometric harmonization and reprojection to EPSG:5070};
+  \draw[flow] (s2.south) -- (s2.south |- harm.north);
+  \draw[flow] (s1.south) -- (s1.south |- harm.north);
+
+  % ------------------------------------------------------------------ module 2
+  \node[proc, text width=5.0cm] (idx) at (7.95,12.65) {Calculate SWIR indices\\(NDTI, NDVI, NDSI, BSI, NDBSI)};
+  \node[proc, text width=3.1cm] (rf)  at (3.4,12.65) {Random Forest\\classifier};
+  \node[prod, text width=3.5cm] (ent) at (3.4,10.75) {Shannon entropy $H$ and\\confidence score $\pmax$};
+  \node[prod, text width=3.5cm] (opt) at (8.0,10.75) {Clear-sky tillage\\prediction};
+  \draw[flow] (idx.west) -- (rf.east);
+  \draw[flow] (rf.south) -- (ent.north);
+  \draw[flow] (4.4,12.15) -- (4.4,11.7) -- (8.0,11.7) -- (opt.north);
+
+  % ------------------------------------------------------------------ module 3
+  \node[proc, text width=3.8cm, minimum height=1.25cm] (coh) at (13.25,12.55)
+       {Interferometric coherence $\gamma$,\\$9 \times 9$ window average};
+  \node[prod, text width=3.8cm] (thr) at (13.25,10.75) {Physical thresholding:\\coherence $\gamma < 0.25$};
+  \draw[flow] (coh.south) -- (thr.north);
+
+  % ------------------------------------------------------------------ module 1 -> modules 2 and 3
+  \draw[flow] (9.0,15.02) -- (9.0,13.15);
+  \node[tag] at (9.0,14.27) {Sentinel-2 optical mosaics};
+  \draw[flow] (13.25,15.02) -- (coh.north);
+  \node[tag] at (13.25,14.27) {Sentinel-1 radar mosaics};
+  \draw[dflow] (gt.south) -- (5.35,14.27) -- (3.4,14.27) -- (rf.north);
+  \node[tag] at (4.4,14.27) {spatial blocking CV};
+
+  % ------------------------------------------------------------------ module 4
+  \node[rule, text width=3.7cm] (r3) at (3.5,7.35)   {Rule 3: false-alarm\\suppression (stability)};
+  \node[rule, text width=3.7cm] (r2) at (8.0,7.35)   {Rule 2: confidence-based\\synergy (enhancement)};
+  \node[rule, text width=4.3cm] (r1) at (12.95,7.35) {Rule 1: absolute atmospheric\\masking (cloud override)};
+  \node[prod, text width=3.7cm] (fus) at (8.0,5.95)  {Pixel-level fused\\tillage result};
+
+  % buses: optical confidence (blue), optical prediction (green), SAR evidence (orange)
+  \draw[bus, confblue]  (2.6,10.25) -- (2.6,7.85);
+  \draw[bus, confblue]  (2.6,8.95) -- (7.1,8.95) -- (7.1,7.85);
+  \node[junction, confblue] at (2.6,8.95) {};
+
+  \draw[bus, optgreen]  (opt.south) -- (8.0,7.85);
+  \draw[bus, optgreen]  (8.0,8.65) -- (3.5,8.65) -- (3.5,7.85);
+  \draw[bus, optgreen]  (8.0,8.65) -- (12.5,8.65) -- (12.5,7.85);
+  \node[junction, optgreen] at (8.0,8.65) {};
+
+  \draw[bus, sarorange] (13.4,10.25) -- (13.4,7.85);
+  \draw[bus, sarorange] (13.4,8.35) -- (4.4,8.35) -- (4.4,7.85);
+  \draw[bus, sarorange] (8.9,8.35) -- (8.9,7.85);
+  \node[junction, sarorange] at (13.4,8.35) {};
+  \node[junction, sarorange] at (8.9,8.35) {};
+
+  \draw[flow] (r2.south) -- (fus.north);
+  \draw[flow] (r3.south) |- (fus.west);
+  \draw[flow] (r1.south) |- (fus.east);
+
+  % ------------------------------------------------------------------ module 5
+  \node[proc, text width=3.9cm] (zon) at (3.4,3.35)  {Zonal statistics intersection};
+  \node[proc, text width=3.9cm] (tf)  at (8.0,2.15)  {Calculate tillage fraction TF};
+  \node[proc, text width=3.9cm] (map) at (12.6,0.95) {Weekly field-level tillage map};
+  \draw[flow] (fus.south) |- (zon.east);
+  \draw[flow] (zon.south) |- (tf.west);
+  \draw[flow] (tf.south)  |- (map.west);
+  \draw[dflow] (0.55,16.2) -- (0.55,3.35) -- (zon.west);
+  \node[tag, rotate=90] at (0.55,9.6) {vector constraint};
+\end{tikzpicture}
+\end{document}

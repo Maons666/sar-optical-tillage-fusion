@@ -1,0 +1,49 @@
+% !LW recipe = build-figure
+% engine = lualatex   (read by build_figures.ps1; this figure needs LuaLaTeX)
+% Figure 12 -- SHAP summary (beeswarm) of the optical Random Forest (PGFPlots). Final width 15 cm.
+% The 22,000 points come from inc_fig12_points.dat, written by fig12_export_shap_points.py from
+% the stored SHAP values of the 2,000 hold-out pixels. 22,000 coloured marks exceed the fixed memory
+% of pdfTeX, so this one figure is compiled with LuaLaTeX (build_figures.ps1 reads the line above).
+\documentclass[tikz,border=3pt]{standalone}
+\input{figstyle}
+\input{inc_fig12_rows}
+\pgfplotsset{
+  colormap={shap}{rgb255(0cm)=(0,139,251); rgb255(0.5cm)=(127,70,166); rgb255(1cm)=(255,0,81)},
+}
+\begin{document}
+\begin{tikzpicture}
+\begin{axis}[
+    width=13.6cm, height=11.5cm,
+    xmin=-0.31, xmax=0.245, ymin=-0.7, ymax=10.7,
+    xlabel={SHAP value (impact on model output)},
+    ytick=\ShapRowTicks,
+    yticklabels/.expanded={\ShapRowLabels},
+    y tick label style={font=\normalsize},
+    ytick style={draw=none},
+    xtick={-0.3,-0.2,-0.1,0,0.1,0.2},
+    xticklabel style={/pgf/number format/fixed, /pgf/number format/precision=1},
+    axis x line*=bottom, axis y line=none,
+    ymajorgrids, grid style={black!18, dotted, line width=0.5pt},
+    colormap name=shap,
+    colorbar,
+    colorbar style={
+        width=0.28cm,
+        ytick={0,1}, yticklabels={Low, High},
+        ylabel={Feature value}, ylabel style={font=\small},
+        ytick style={draw=none}, y tick label style={font=\small},
+        axis line style={draw=none},
+    },
+    point meta min=0, point meta max=1,
+    clip=false,
+]
+  % row labels are drawn by hand because the y axis line is hidden
+  \foreach \lab [count=\i from 0] in \ShapRowLabels {
+    \edef\temp{\noexpand\node[anchor=east, font=\noexpand\normalsize] at (axis cs:-0.318,\i) {\lab};}\temp
+  }
+  \draw[black!55, line width=0.8pt] (axis cs:0,-0.7) -- (axis cs:0,10.7);
+  \addplot[scatter, only marks, mark=*, mark size=1.05pt, scatter src=explicit,
+           scatter/use mapped color={draw=mapped color, fill=mapped color}]
+      table[x=x, y=y, meta=c] {inc_fig12_points.dat};
+\end{axis}
+\end{tikzpicture}
+\end{document}

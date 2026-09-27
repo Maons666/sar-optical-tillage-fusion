@@ -1,0 +1,39 @@
+% !LW recipe = build-figure
+% Figure 5 -- Confidence gate (TikZ). Final width about 15 cm.
+\documentclass[tikz,border=3pt]{standalone}
+\input{figstyle}
+\begin{document}
+\begin{tikzpicture}[x=14cm, y=1cm]
+  % x axis = optical confidence score p_max on [0, 1]
+  \def\gate{0.65}
+
+  % the two decision regions
+  \fill[sarorangefill] (0,0) rectangle (\gate,1.7);
+  \fill[optgreenfill]  (\gate,0) rectangle (1,1.7);
+  \draw[sarorange, line width=1.1pt] (0,0) rectangle (\gate,1.7);
+  \draw[optgreen,  line width=1.1pt] (\gate,0) rectangle (1,1.7);
+
+  \node[text=sarorange, font=\large\bfseries\sansmath] at ({\gate/2},1.10) {$\pmax < 0.65$};
+  \node[text=sarorange, font=\small]          at ({\gate/2},0.50) {pixel referred to the SAR coherence rules};
+  \node[text=optgreen,  font=\large\bfseries\sansmath] at ({(1+\gate)/2},1.10) {$\pmax \geq 0.65$};
+  \node[text=optgreen,  font=\small]          at ({(1+\gate)/2},0.50) {optical prediction accepted};
+
+  % axis with ticks
+  \draw[line width=0.6pt] (0,-0.02) -- (1,-0.02);
+  \foreach \t/\lab in {0/0, 0.25/0.25, 0.5/0.50, 0.75/0.75, 1/1}{
+    \draw[line width=0.6pt] (\t,-0.02) -- (\t,-0.17);
+    \node[font=\small, below] at (\t,-0.2) {\lab};
+  }
+  \draw[sarorange, line width=1pt] (\gate,-0.02) -- (\gate,-0.17);
+  \node[font=\small\bfseries, text=sarorange, below] at (\gate,-0.2) {0.65};
+
+  % gate marker
+  \draw[eventred, line width=1.3pt, -{Stealth[length=8pt,width=7pt]}] (\gate,2.65) -- (\gate,1.76);
+  \node[text=eventred, font=\bfseries\sansmath, above] at (\gate,2.65)
+       {gate $T = 0.65$ \enspace ($H \approx 0.93$ bit)};
+
+  % axis label
+  \node[font=\small] at (0.5,-1.15)
+       {optical confidence score \enspace $\pmax = \max\left(p_{\mathrm{tilled}},\, p_{\mathrm{untilled}}\right)$};
+\end{tikzpicture}
+\end{document}

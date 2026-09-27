@@ -1,0 +1,79 @@
+% !LW recipe = build-figure
+% Figure 11 -- Schematic co-evolution of NDTI, SAR coherence and optical confidence through a
+% 60-day window containing one tillage event (PGFPlots, illustrative curves). Final width 15 cm.
+%
+% Curve definitions (identical to the earlier raster version of the figure)
+%   event on day 30; cloud-affected days 20-40; Scene Classification Layer mask on days 28-32
+%   NDTI    0.22 before the event, 0.09 after it; no value on masked days
+%   gamma   0.62 + 0.03 sin(d/3) before the event; 0.10 + 0.40 (1 - exp(-(d-30)/12)) after it
+%   p_max   0.96 outside the cloud period; 0.96 - 0.60 (1 - |d-30|/10) inside it; no value when masked
+\documentclass[tikz,border=3pt]{standalone}
+\input{figstyle}
+\usepgfplotslibrary{groupplots}
+\begin{document}
+\begin{tikzpicture}
+\pgfplotsset{
+  signal/.style={
+    width=13.2cm, height=4.3cm, xmin=0, xmax=60,
+    xtick={0,10,...,60}, axis on top,
+    ylabel style={align=center, font=\small\bfseries},
+    every axis plot/.append style={line width=1.6pt, line cap=round},
+  },
+}
+\tikzset{
+  cloudband/.style={draw=none, fill=cloudgrey},
+  maskband/.style={draw=none, fill=black!27},
+}
+\begin{groupplot}[
+    group style={group size=1 by 3, vertical sep=0.55cm, x descriptions at=edge bottom},
+    signal,
+]
+  % ---------------------------------------------------------------- NDTI
+  \nextgroupplot[ymin=0, ymax=0.30, ytick={0,0.15,0.30},
+      yticklabel style={/pgf/number format/fixed, /pgf/number format/precision=2},
+      ylabel={NDTI\\(residue index)}, ylabel style={text=optgreen}]
+    \fill[cloudband] (axis cs:20,0) rectangle (axis cs:40,0.30);
+    \fill[maskband]  (axis cs:28,0) rectangle (axis cs:32,0.30);
+    \addplot[optgreen] coordinates {(0,0.22) (27,0.22)};
+    \addplot[optgreen] coordinates {(33,0.09) (60,0.09)};
+    \draw[eventred, dashed, line width=1pt] (axis cs:30,0) -- (axis cs:30,0.30);
+    \node[text=eventred, font=\small\bfseries, anchor=west] at (axis cs:32.4,0.262) {tillage event};
+    % key to the two grey bands
+    \fill[cloudband] (axis cs:43.2,0.232) rectangle (axis cs:45.0,0.262);
+    \node[font=\footnotesize, anchor=west] at (axis cs:45.3,0.247) {cloud-affected days};
+    \fill[maskband]  (axis cs:43.2,0.172) rectangle (axis cs:45.0,0.202);
+    \node[font=\footnotesize, anchor=west] at (axis cs:45.3,0.187) {SCL-masked days};
+
+  % ---------------------------------------------------------------- SAR coherence
+  \nextgroupplot[ymin=0, ymax=1, ytick={0,0.5,1},
+      ylabel={SAR coherence\\$\gamma$}, ylabel style={text=sarorange}]
+    \fill[cloudband] (axis cs:20,0) rectangle (axis cs:40,1);
+    \fill[maskband]  (axis cs:28,0) rectangle (axis cs:32,1);
+    \draw[sarorange, dashed, line width=0.9pt] (axis cs:0,0.25) -- (axis cs:60,0.25);
+    \node[text=sarorange, font=\small\bfseries\sansmath, anchor=south east] at (axis cs:59.6,0.25) {$\gamma = 0.25$};
+    \addplot[sarorange, domain=0:29.5, samples=90] {0.62 + 0.03*sin(deg(x/3))};
+    \addplot[sarorange] coordinates {(29.5,0.6112) (30,0.10)};
+    \addplot[sarorange, domain=30:60, samples=90] {0.10 + 0.40*(1 - exp(-(x-30)/12))};
+    \draw[eventred, dashed, line width=1pt] (axis cs:30,0) -- (axis cs:30,1);
+
+  % ---------------------------------------------------------------- optical confidence
+  \nextgroupplot[ymin=0.3, ymax=1, ytick={0.3,0.65,1},
+      yticklabel style={/pgf/number format/fixed, /pgf/number format/precision=2},
+      xlabel={Day of observation window},
+      ylabel={Optical confidence\\$\pmax$}, ylabel style={text=confblue}]
+    \fill[cloudband] (axis cs:20,0.3) rectangle (axis cs:40,1);
+    \fill[maskband]  (axis cs:28,0.3) rectangle (axis cs:32,1);
+    \draw[gateyellow, dashed, line width=0.9pt] (axis cs:0,0.65) -- (axis cs:60,0.65);
+    \node[text=gateyellow, font=\small\bfseries\sansmath, anchor=south east] at (axis cs:59.6,0.65) {gate $\pmax = 0.65$};
+    \addplot[confblue] coordinates {(0,0.96) (20,0.96) (27,0.54)};
+    \addplot[confblue] coordinates {(33,0.54) (40,0.96) (60,0.96)};
+    \draw[eventred, dashed, line width=1pt] (axis cs:30,0.3) -- (axis cs:30,1);
+    \node[text=confblue, font=\footnotesize, align=center] (fringe) at (axis cs:10,0.47)
+         {$\pmax < 0.65$ on the cloud fringe:\\SAR correction rules};
+    \draw[confblue, line width=0.5pt, -{Stealth[length=4pt]}] (fringe.east) -- (axis cs:25.6,0.60);
+    \node[text=confblue, font=\footnotesize, align=center] (masked) at (axis cs:50,0.47)
+         {no $\pmax$ on masked days:\\SAR override};
+    \draw[confblue, line width=0.5pt, -{Stealth[length=4pt]}] (masked.west) -- (axis cs:32.2,0.42);
+\end{groupplot}
+\end{tikzpicture}
+\end{document}

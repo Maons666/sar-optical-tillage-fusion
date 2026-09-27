@@ -1,0 +1,69 @@
+% !LW recipe = build-figure
+% Figure -- Sensitivity of the fusion decisions to the three thresholds, sample-based run (PGFPlots).
+% Final width 15.5 cm. Data files are written by make_tables_and_figure_samples.py and sit next to this file:
+% (a) dat_gate_target.dat   T retained          share of clear pixels kept by the optical channel
+% (b) dat_sens_gamma_low.dat, dat_sens_gamma_high.dat   cumulative tilled share of the final week
+% (c) dat_rule_shares.dat   opt r1 r2 r3        share of decided pixels per branch, baseline thresholds
+\documentclass[tikz,border=3pt]{standalone}
+\input{figstyle}
+\usepgfplotslibrary{groupplots}
+\pgfplotsset{
+  sens panel/.style={
+    scale only axis, height=4.3cm,
+    title style={font=\small, yshift=-2pt},
+    tick label style={font=\footnotesize},
+    legend style={font=\footnotesize, inner sep=2pt, row sep=-1.5pt},
+    legend cell align=left,
+  },
+}
+\tikzset{basemark/.style={dashed, line width=0.7pt}}
+\begin{document}
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=3 by 1, horizontal sep=1.4cm}, sens panel]
+
+  % ------------------------------------------------ (a) gate sweep on the 2025 pixels
+  \nextgroupplot[width=3.2cm, title={(a) Confidence gate},
+      xlabel={gate threshold $T$ on $\pmax$}, ylabel={clear pixels kept by optical (\%)},
+      xmin=0.47, xmax=0.93, xtick={0.5,0.6,0.7,0.8,0.9}, ymax=101,
+      enlarge y limits={value=0.35, lower},
+      legend style={at={(0.03,0.04)}, anchor=south west}]
+    \addplot[optgreen, line width=1.2pt, mark=*, mark size=1.6pt] table[x=T, y=retained] {dat_gate_target.dat};
+    \addlegendentry{retained share}
+    \addlegendimage{black, basemark}
+    \addlegendentry{baseline}
+    \draw[black, basemark] ({axis cs:0.65,0}|-{rel axis cs:0,0}) -- ({axis cs:0.65,0}|-{rel axis cs:0,1});
+
+  % ------------------------------------------------ (b) SAR thresholds
+  \nextgroupplot[width=3.2cm, title={(b) SAR thresholds},
+      xlabel={threshold on $\gamma$}, ylabel={tilled pixels, cumulative (\%)},
+      xmin=0.10, xmax=0.75, xtick={0.2,0.4,0.6},
+      enlarge y limits={value=0.12, upper}, enlarge y limits={value=0.9, lower},
+      legend style={at={(0.97,0.04)}, anchor=south east}]
+    \addplot[sarorange, line width=1.2pt, mark=*, mark size=1.6pt] table[x=gamma_low, y=pct_tilled_cum] {dat_sens_gamma_low.dat};
+    \addlegendentry{$\glow$ (rules 1--2)}
+    \addplot[confblue, line width=1.2pt, mark=square*, mark size=1.5pt] table[x=gamma_high, y=pct_tilled_cum] {dat_sens_gamma_high.dat};
+    \addlegendentry{$\ghigh$ (rule 3)}
+    \addlegendimage{black, basemark}
+    \addlegendentry{baseline}
+    \draw[sarorange, basemark] ({axis cs:0.25,0}|-{rel axis cs:0,0}) -- ({axis cs:0.25,0}|-{rel axis cs:0,1});
+    \draw[confblue, basemark] ({axis cs:0.60,0}|-{rel axis cs:0,0}) -- ({axis cs:0.60,0}|-{rel axis cs:0,1});
+
+  % ------------------------------------------------ (c) rule shares per week
+  \nextgroupplot[width=4.75cm, title={(c) Which rule decides},
+      ybar stacked, bar width=6.5pt, xlabel={week ending}, ylabel={share of pixels (\%)},
+      ymin=0, ymax=130, ytick={0,20,...,100}, enlarge x limits=0.055,
+      xtick=data, xticklabels from table={dat_rule_shares.dat}{week},
+      x tick label style={rotate=90, anchor=east, font=\footnotesize}, xtick style={draw=none},
+      area legend, legend columns=2,
+      legend style={at={(0.5,0.985)}, anchor=north, draw=none, fill=none, column sep=3pt}]
+    \addplot[fill=optgreenfill, draw=optgreen] table[x expr=\coordindex, y=opt] {dat_rule_shares.dat};
+    \addlegendentry{optical}
+    \addplot[fill=sarorangefill, draw=sarorange] table[x expr=\coordindex, y=r1] {dat_rule_shares.dat};
+    \addlegendentry{rule 1, cloud}
+    \addplot[fill=gateyellowfill, draw=gateyellow] table[x expr=\coordindex, y=r2] {dat_rule_shares.dat};
+    \addlegendentry{rule 2, low $\gamma$}
+    \addplot[fill=confblue!25, draw=confblue] table[x expr=\coordindex, y=r3] {dat_rule_shares.dat};
+    \addlegendentry{rule 3, high $\gamma$}
+\end{groupplot}
+\end{tikzpicture}
+\end{document}

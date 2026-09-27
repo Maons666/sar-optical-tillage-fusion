@@ -1,0 +1,65 @@
+% !LW recipe = build-figure
+% Figure 10 -- Routing of the classification decision across three optical regimes (TikZ).
+% Final width 15.8 cm. The three columns are the three branches of the fusion logic; the rows
+% follow one pixel from what Sentinel-2 delivers to the module that decides.
+\documentclass[tikz,border=3pt]{standalone}
+\input{figstyle}
+\begin{document}
+\begin{tikzpicture}[
+    cell/.style={rectangle, rounded corners=2pt, draw=neutralline, line width=0.6pt, align=center,
+                 text width=3.85cm, minimum height=1.35cm, inner sep=3pt, font=\small},
+    regime/.style={cell, draw=none, text=white, font=\small\bfseries, minimum height=1.15cm},
+    plain/.style={cell, fill=neutralfill},
+    conf/.style={cell, fill=white, text=confblue, font=\bfseries\sansmath},
+    sar/.style={cell, fill=sarorangefill, draw=sarorange, minimum height=1.75cm},
+    rowlab/.style={font=\small\bfseries, text=black!75, align=center, text width=2.5cm},
+  ]
+  % column centres and row heights
+  \def\xa{4.95} \def\xb{9.35} \def\xc{13.75}
+  \def\ya{0} \def\yb{-1.65} \def\yc{-3.35} \def\yd{-5.25} \def\ye{-7.2}
+
+  % row labels
+  \node[rowlab] at (1.3,\ya) {Regime};
+  \node[rowlab] at (1.3,\yb) {Sentinel-2};
+  \node[rowlab] at (1.3,\yc) {Optical\\confidence\\$\pmax$};
+  \node[rowlab] at (1.3,\yd) {SAR coherence\\$\gamma$};
+  \node[rowlab] at (1.3,\ye) {Active module};
+
+  % regimes
+  \node[regime, fill=optgreen]   (r1) at (\xa,\ya) {CLEAR SKY\\high confidence};
+  \node[regime, fill=gateyellow] (r2) at (\xb,\ya) {CLEAR SKY\\low confidence};
+  \node[regime, fill=sarorange]  (r3) at (\xc,\ya) {CLOUD\\(SCL classes 8--10)};
+
+  % Sentinel-2
+  \node[plain] (s1) at (\xa,\yb) {Optical usable};
+  \node[plain] (s2) at (\xb,\yb) {Optical usable but ambiguous\\{\footnotesize (haze, thin cirrus, wet residue, mixed pixel)}};
+  \node[plain] (s3) at (\xc,\yb) {Optical masked};
+
+  % optical confidence
+  \node[conf] (c1) at (\xa,\yc) {$\pmax \approx 0.95$\\$(\geq 0.65)$};
+  \node[conf] (c2) at (\xb,\yc) {$\pmax \approx 0.55$\\$(< 0.65)$};
+  \node[conf] (c3) at (\xc,\yc) {n/a};
+
+  % SAR coherence
+  \node[sar] (g1) at (\xa,\yd) {computed,\\not consulted};
+  \node[sar] (g2) at (\xb,\yd) {consulted:\\$\gamma < 0.25 \rightarrow$ Tilled\\$\gamma > 0.60 \rightarrow$ Untilled\\otherwise keep optical};
+  \node[sar] (g3) at (\xc,\yd) {decisive:\\$\gamma < 0.25 \rightarrow$ Tilled\\else Untilled};
+
+  % active module
+  \node[cell, fill=optgreenfill,   draw=optgreen,   line width=1pt, text=optgreen,   font=\bfseries, minimum height=1.5cm] (a1) at (\xa,\ye) {USE OPTICAL};
+  \node[cell, fill=gateyellowfill, draw=gateyellow, line width=1pt, text=gateyellow, font=\bfseries, minimum height=1.5cm] (a2) at (\xb,\ye) {SAR CORRECTION\\(Rules 2--3)};
+  \node[cell, fill=sarorangefill,  draw=sarorange,  line width=1pt, text=sarorange,  font=\bfseries, minimum height=1.5cm] (a3) at (\xc,\ye) {SAR OVERRIDE\\(Rule 1)};
+
+  % flow arrows down each column
+  \foreach \t/\b in {r1/s1, s1/c1, c1/g1, g1/a1, r2/s2, s2/c2, c2/g2, g2/a2, r3/s3, s3/c3, c3/g3, g3/a3}{
+    \draw[-{Stealth[length=4.5pt]}, black!55, line width=0.6pt] (\t.south) -- (\b.north);
+  }
+
+  % decision rule banner
+  \node[rectangle, rounded corners=2pt, draw=gateyellow, fill=gateyellowfill!55, line width=0.7pt,
+        minimum width=15.6cm, align=center, inner sep=5pt, font=\small] at (7.9,-9.15)
+       {\textbf{Decision rule}\\[1pt]
+        SCL cloud $\rightarrow$ SAR override \qquad\textbar\qquad $\pmax \geq 0.65 \rightarrow$ optical prediction\\[1pt]
+        $\pmax < 0.65 \rightarrow$ SAR correction ($\gamma < 0.25$: Tilled;\enspace $\gamma > 0.60$: Untilled;\enspace otherwise optical)};
+\end{tikzpicture}
+\end{document}

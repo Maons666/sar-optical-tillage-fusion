@@ -1,0 +1,54 @@
+% =====================================================================================
+% figstyle.tex -- shared preamble of the standalone figure sources.
+% Each figure is a self-contained LaTeX document:   \documentclass{standalone} \input{figstyle}
+% Compile it (pdflatex) and copy the PDF one level up; build_figures.ps1 does this for all.
+%
+% Design rules used throughout
+%   * every figure is drawn at its final printed size (<= 16 cm wide), so the font sizes
+%     below are the sizes the reader sees: text 9 pt, smallest labels 8 pt;
+%   * sans-serif lettering (Helvetica clone) as recommended by Elsevier for artwork;
+%   * no titles inside the artwork (the caption carries the title) and no hard-coded
+%     section or equation numbers (the caption refers to them through \ref).
+% =====================================================================================
+\usepackage[T1]{fontenc}
+\usepackage[scaled=0.92]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{amsmath,amssymb}
+\usepackage{sansmath}
+\AtBeginDocument{\sansmath}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{colormaps}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,shapes.misc}
+
+% ---- palette (shared by Figures 2-5 and 9-11) -----------------------------------------
+\definecolor{optgreen}{RGB}{62,125,88}        % optical stream
+\definecolor{optgreenfill}{RGB}{213,229,219}
+\definecolor{sarorange}{RGB}{184,107,42}      % SAR stream
+\definecolor{sarorangefill}{RGB}{244,214,190}
+\definecolor{gateyellow}{RGB}{176,128,10}     % low-confidence / gate
+\definecolor{gateyellowfill}{RGB}{255,240,196}
+\definecolor{confblue}{RGB}{31,58,110}        % optical confidence
+\definecolor{eventred}{RGB}{185,55,55}        % tillage event, gate marker
+\definecolor{neutralfill}{RGB}{242,242,242}
+\definecolor{neutralline}{RGB}{105,105,105}
+\definecolor{cloudgrey}{RGB}{221,221,221}
+\definecolor{inputred}{RGB}{248,206,204}      % header fill of the SAR panels
+
+% ---- notation shared with the manuscript ------------------------------------------------
+\newcommand{\pmax}{p_{\max}}
+\newcommand{\glow}{\gamma_{\mathrm{low}}}
+\newcommand{\ghigh}{\gamma_{\mathrm{high}}}
+
+% ---- common pgfplots look ---------------------------------------------------------------
+\pgfplotsset{
+  every axis/.append style={
+    font=\small,
+    tick label style={font=\small},
+    label style={font=\small},
+    legend style={font=\small, draw=black!35, fill=white, fill opacity=0.9, text opacity=1},
+    axis line style={line width=0.5pt},
+    tick style={line width=0.5pt, black},
+  },
+}
